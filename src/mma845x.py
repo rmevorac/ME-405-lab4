@@ -8,7 +8,7 @@ an exercise in a mechatronics course.
 """
 
 import micropython
-
+import pyb
 
 ## The register address of the STATUS register in the MMA845x
 STATUS_REG = micropython.const (0x00)
@@ -135,9 +135,9 @@ class MMA845x:
         be made, one must call @c active(). """
 
         if self._works:
-            reg1 = ord (self._i2c.mem_read (1, self._addr, CTRL_REG1))
+            reg1 = ord (self.i2c.mem_read (1, self.addr, CTRL_REG1))
             reg1 &= ~0x01
-            self._i2c.mem_write (chr (reg1 & 0xFF), self._addr, CTRL_REG1)
+            self.i2c.mem_write(chr(reg1 & 0xFF), self.addr, CTRL_REG1)
 
 
     def get_ax_bits (self):
@@ -145,8 +145,10 @@ class MMA845x:
         return it.
         @return The measured X acceleration in A/D conversion bits """
 
-        print ('MMA845x clueless about X acceleration')
-        return 0
+        if self._works:
+            x_msb = self.i2c.mem_read(1, self.addr, OUT_X_MSB)
+            x_lsb = self.i2c.mem_read(1, self.addr, OUT_X_LSB)        
+            return x_msb + x_lsb
 
 
     def get_ay_bits (self):
@@ -154,8 +156,10 @@ class MMA845x:
         return it.
         @return The measured Y acceleration in A/D conversion bits """
 
-        print ('MMA845x clueless about Y acceleration')
-        return 0
+        if self._works:
+            y_msb = self.i2c.mem_read(1, self.addr, OUT_Y_MSB)
+            y_lsb = self.i2c.mem_read(1, self.addr, OUT_Y_LSB)        
+            return y_msb + y_lsb
 
 
     def get_az_bits (self):
@@ -163,8 +167,10 @@ class MMA845x:
         return it.
         @return The measured Z acceleration in A/D conversion bits """
 
-        print ('MMA845x clueless about Z acceleration')
-        return 0
+        if self._works:
+            z_msb = self.i2c.mem_read(1, self.addr, OUT_Z_MSB)
+            z_lsb = self.i2c.mem_read(1, self.addr, OUT_Z_LSB)        
+            return z_msb + z_lsb
 
 
     def get_ax (self):
@@ -172,8 +178,13 @@ class MMA845x:
         that the accelerometer was correctly calibrated at the factory.
         @return The measured X acceleration in g's """
 
-        print ('MMA845x uncalibrated X')
-        return 0
+        if self._works:
+            acc_x = self.get_ax_bits()
+            if acc_x[0] & 0x80:  # Check if the most significant bit is set
+                acc_x = -(65536 - int.from_bytes(acc_x, 'big'))
+            else:
+                acc_x = int.from_bytes(acc_x, 'big')
+            return acc_x
 
 
     def get_ay (self):
@@ -182,8 +193,13 @@ class MMA845x:
         measurement is adjusted for the range (2g, 4g, or 8g) setting.
         @return The measured Y acceleration in g's """
 
-        print ('MMA845x uncalibrated Y')
-        return 0
+        if self._works:
+            acc_y = self.get_ay_bits()
+            if acc_y[0] & 0x80:  # Check if the most significant bit is set
+                acc_y = -(65536 - int.from_bytes(acc_y, 'big'))
+            else:
+                acc_y = int.from_bytes(acc_y, 'big')
+            return acc_y
 
 
     def get_az (self):
@@ -192,8 +208,13 @@ class MMA845x:
         measurement is adjusted for the range (2g, 4g, or 8g) setting.
         @return The measured Z acceleration in g's """
 
-        print ('MMA845x uncalibrated Z')
-        return 0
+        if self._works:
+            acc_z = self.get_az_bits()
+            if acc_z[0] & 0x80:  # Check if the most significant bit is set
+                acc_z = -(65536 - int.from_bytes(acc_z, 'big'))
+            else:
+                acc_z = int.from_bytes(acc_z, 'big')
+            return acc_z
 
 
     def get_accels (self):
@@ -220,3 +241,19 @@ class MMA845x:
             diag_str += 'active' if reg1 & 0x01 else 'standby'
 
             return diag_str
+        
+if __name__ == "__main__":
+    mma = MMA845x(pyb.I2C(1, pyb.I2C.MASTER, baudrate = 100000), 29)
+    mma.active()
+    while True:
+        try:
+            #aye = pyb.I2C (1,pyb.I2C.CONTROLLER)
+
+            print(mma.get_accels())
+            #print(pyb.I2C.scan (aye))
+        except KeyboardInterrupt:
+            continue
+        
+  
+        
+        
