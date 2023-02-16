@@ -242,18 +242,15 @@ class MMA845x:
 
             return diag_str
         
-if __name__ == "__main__":
-    mma = MMA845x(pyb.I2C(1, pyb.I2C.MASTER, baudrate = 100000), 29)
-    mma.active()
-    while True:
-        try:
-            #aye = pyb.I2C (1,pyb.I2C.CONTROLLER)
-
-            print(mma.get_accels())
-            #print(pyb.I2C.scan (aye))
-        except KeyboardInterrupt:
-            continue
-        
-  
-        
+#if __name__ == "__main__":
+#    mma = MMA845x(pyb.I2C(1, pyb.I2C.MASTER, baudrate = 100000), 29)
+#    mma.active()
+#    while True:
+#        try:
+#            #aye = pyb.I2C (1,pyb.I2C.CONTROLLER)
+#
+#            print(mma.get_accels())
+#            #print(pyb.I2C.scan (aye))
+#        except KeyboardInterrupt:
+#            continue       
         
